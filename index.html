@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tris 4x4</title>
+  <meta name="description" content="Tris 4x4 per due giocatori">
+  <style>
+    :root { color-scheme: light; --ink: #171717; --paper: #f7f4ef; --line: #2c2a27; --muted: #706a61; --black: #111111; --white: #ffffff; --accent-2: #be123c; --cell: clamp(48px, 13vw, 78px); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: linear-gradient(90deg, rgba(44, 42, 39, 0.05) 1px, transparent 1px), linear-gradient(rgba(44, 42, 39, 0.05) 1px, transparent 1px), var(--paper); background-size: 32px 32px; color: var(--ink); }
+    main { width: min(94vw, 500px); padding: 18px; }
+    .topbar { display: flex; justify-content: space-between; align-items: end; gap: 14px; margin-bottom: 12px; }
+    h1 { margin: 0; font-size: clamp(1.7rem, 6vw, 2.8rem); line-height: 0.95; font-weight: 850; letter-spacing: 0; }
+    .subtitle { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+    .actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+    .reset { appearance: none; border: 2px solid var(--line); border-radius: 8px; background: #f4b942; color: var(--ink); min-height: 38px; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 3px 3px 0 var(--line); transition: transform 150ms ease, box-shadow 150ms ease; white-space: nowrap; }
+    .reset.secondary { background: #ffffff; }
+    .reset:hover, .reset:focus-visible { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--line); outline: none; }
+    .scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .score, .status { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 2px solid var(--line); border-radius: 8px; background: #ffffff; box-shadow: 3px 3px 0 var(--line); }
+    .score { min-height: 42px; padding: 8px 11px; font-weight: 850; }
+    .score-label { display: flex; align-items: center; gap: 8px; }
+    .score-dot, .turn-dot { border: 2px solid var(--line); border-radius: 50%; background: var(--black); }
+    .score-dot { width: 18px; height: 18px; }
+    .score-dot.white, .turn-dot.white { background: var(--white); }
+    .score-value { min-width: 2ch; text-align: right; font-size: 1.2rem; }
+    .status { min-height: 44px; padding: 9px 11px; margin-bottom: 12px; }
+    .status-text { margin: 0; font-weight: 800; font-size: clamp(0.94rem, 3vw, 1.05rem); }
+    .turn-dot { width: 24px; height: 24px; flex: 0 0 24px; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.14); }
+    .board { display: grid; grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell)); justify-content: center; gap: 7px; padding: 9px; border: 3px solid var(--line); border-radius: 8px; background: #2596be; box-shadow: 5px 5px 0 var(--line); }
+    .cell { width: var(--cell); height: var(--cell); display: grid; place-items: center; border: 2px solid var(--line); border-radius: 8px; background: #fdfbf7; cursor: pointer; transition: transform 120ms ease, background-color 120ms ease; }
+    .cell:hover:not(:disabled), .cell:focus-visible:not(:disabled) { transform: translateY(-3px); background: #fff7d1; outline: none; }
+    .cell:disabled { cursor: default; }
+    .piece { display: block; width: 62%; aspect-ratio: 1; border: 2px solid var(--line); border-radius: 50%; transform: scale(1); }
+    .piece.reveal { animation: placePiece 260ms cubic-bezier(0.18, 0.85, 0.22, 1) both; }
+    .piece.black { background: var(--black); box-shadow: inset -8px -8px 0 rgba(255, 255, 255, 0.12); }
+    .piece.white { background: var(--white); box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.08); }
+    .cell.win { background: #9be15d; }
+    .cell.win .piece { border-color: var(--accent-2); }
+    @keyframes placePiece { 0% { opacity: 0; transform: scale(0.25) rotate(-12deg); } 70% { opacity: 1; transform: scale(1.08) rotate(3deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
+    @media (max-width: 520px) { main { padding: 16px; } .topbar { align-items: start; flex-direction: column; } .actions, .reset { width: 100%; } .scoreboard { grid-template-columns: 1fr; } .board { gap: 5px; padding: 7px; } }
+    @media (prefers-reduced-motion: reduce) { .cell, .piece.reveal { animation: none; transition: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <div><h1>Tris 4x4</h1><p class="subtitle">Nero e bianco alternano il turno. Vince chi allinea 4 pedine.</p></div>
+      <div class="actions"><button class="reset" type="button" id="newMatchButton">Nuova partita</button><button class="reset secondary" type="button" id="resetBoardButton">Reset tabellone</button></div>
+    </div>
+    <section class="scoreboard" aria-label="Segnapunti"><div class="score"><span class="score-label"><span class="score-dot" aria-hidden="true"></span>Nero</span><span class="score-value" id="blackScore">0</span></div><div class="score"><span class="score-label"><span class="score-dot white" aria-hidden="true"></span>Bianco</span><span class="score-value" id="whiteScore">0</span></div></section>
+    <section class="status" aria-live="polite"><p class="status-text" id="statusText">Tocca al nero</p><span class="turn-dot" id="turnDot" aria-hidden="true"></span></section>
+    <section class="board" id="board" aria-label="Tabellone Tris 4 per 4"></section>
+  </main>
+  <script>
+    const boardElement = document.querySelector("#board");
+    const statusText = document.querySelector("#statusText");
+    const turnDot = document.querySelector("#turnDot");
+    const newMatchButton = document.querySelector("#newMatchButton");
+    const resetBoardButton = document.querySelector("#resetBoardButton");
+    const blackScore = document.querySelector("#blackScore");
+    const whiteScore = document.querySelector("#whiteScore");
+    const size = 4;
+    const winLength = 4;
+    const players = { black: "nero", white: "bianco" };
+    let board = Array(size * size).fill(null);
+    let currentPlayer = "black";
+    let startingPlayer = "black";
+    let activeStartingPlayer = "black";
+    let roundFinished = false;
+    let scores = { black: 0, white: 0 };
+    let gameOver = false;
+    function buildBoard() { boardElement.innerHTML = ""; for (let index = 0; index < board.length; index += 1) { const cell = document.createElement("button"); cell.className = "cell"; cell.type = "button"; cell.dataset.index = String(index); cell.setAttribute("aria-label", `Casella ${index + 1}`); cell.addEventListener("click", () => play(index)); boardElement.append(cell); } }
+    function play(index) { if (gameOver || board[index]) return; board[index] = currentPlayer; render(index); const winningLine = findWinningLine(); if (winningLine) { const winner = currentPlayer; const loser = winner === "black" ? "white" : "black"; gameOver = true; roundFinished = true; scores[winner] += 1; startingPlayer = loser; markWinningLine(winningLine); updateScoreboard(); statusText.textContent = `Ha vinto il ${players[winner]}. Prossima apre il ${players[loser]}`; disableEmptyCells(); return; } if (board.every(Boolean)) { gameOver = true; roundFinished = true; startingPlayer = activeStartingPlayer === "black" ? "white" : "black"; statusText.textContent = "Pareggio"; turnDot.classList.toggle("white", currentPlayer === "white"); return; } currentPlayer = currentPlayer === "black" ? "white" : "black"; updateStatus(); }
+    function render(animatedIndex = null) { board.forEach((player, index) => { const cell = boardElement.children[index]; cell.innerHTML = ""; cell.classList.remove("win"); cell.disabled = Boolean(player) || gameOver; if (player) { const piece = document.createElement("span"); piece.className = `piece ${player}${index === animatedIndex ? " reveal" : ""}`; piece.setAttribute("aria-hidden", "true"); cell.append(piece); cell.setAttribute("aria-label", `Casella ${index + 1}, ${players[player]}`); } else { cell.setAttribute("aria-label", `Casella ${index + 1}, vuota`); } }); }
+    function findWinningLine() { const directions = [[0, 1], [1, 0], [1, 1], [1, -1]]; for (let row = 0; row < size; row += 1) { for (let col = 0; col < size; col += 1) { const start = board[row * size + col]; if (!start) continue; for (const [rowStep, colStep] of directions) { const line = []; for (let offset = 0; offset < winLength; offset += 1) { const nextRow = row + rowStep * offset; const nextCol = col + colStep * offset; if (nextRow < 0 || nextRow >= size || nextCol < 0 || nextCol >= size) break; const nextIndex = nextRow * size + nextCol; if (board[nextIndex] !== start) break; line.push(nextIndex); } if (line.length === winLength) return line; } } } return null; }
+    function markWinningLine(line) { line.forEach((index) => boardElement.children[index].classList.add("win")); }
+    function disableEmptyCells() { Array.from(boardElement.children).forEach((cell, index) => { if (!board[index]) cell.disabled = true; }); }
+    function updateStatus() { statusText.textContent = `Tocca al ${players[currentPlayer]}`; turnDot.classList.toggle("white", currentPlayer === "white"); }
+    function updateScoreboard() { blackScore.textContent = scores.black; whiteScore.textContent = scores.white; }
+    function resetBoard(advanceRound = false) { if (advanceRound && !roundFinished) { startingPlayer = activeStartingPlayer === "black" ? "white" : "black"; } board = Array(size * size).fill(null); currentPlayer = startingPlayer; activeStartingPlayer = startingPlayer; roundFinished = false; gameOver = false; render(); updateStatus(); }
+    function newMatch() { scores = { black: 0, white: 0 }; startingPlayer = "black"; updateScoreboard(); resetBoard(false); }
+    newMatchButton.addEventListener("click", newMatch); resetBoardButton.addEventListener("click", () => resetBoard(true)); buildBoard(); newMatch();
+  </script>
+</body>
+</html>
