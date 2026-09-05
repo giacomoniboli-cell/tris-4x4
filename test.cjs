@@ -1,0 +1,23 @@
+const {strict:assert}=require('node:assert');
+const vm=require('node:vm');
+const fs=require('node:fs');
+function element(){return {children:[],style:{setProperty(){}},classList:{add(){},remove(){},toggle(){}},dataset:{},setAttribute(){},addEventListener(){},append(x){this.children.push(x)},focus(){}}}
+const nodes=new Map();
+const context=vm.createContext({document:{querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},createElement:element}});
+vm.runInContext(fs.readFileSync(__dirname+'/game.js','utf8'),context);
+const run=s=>vm.runInContext(s,context);
+assert.equal(run('board.length'),16);
+run('play(0); play(0)');assert.equal(run('currentPlayer'),'white');
+run('newMatch(); [0,4,1,5,2,6,3].forEach(play)');
+assert.equal(run('scores.black'),1);assert.equal(run('gameOver'),true);
+run('play(8)');assert.equal(run('board[8]'),null);
+run('resetBoard(false)');assert.equal(run('currentPlayer'),'white');assert.equal(run('scores.black'),1);
+run('newMatch(); [0,1,4,2,8,3,12].forEach(play)');assert.equal(run('scores.black'),1);
+run('newMatch(); [0,1,5,2,10,3,15].forEach(play)');assert.equal(run('scores.black'),1);
+run('newMatch(); [3,0,6,1,9,2,12].forEach(play)');assert.equal(run('scores.black'),1);
+run('newMatch(); board = ["black","black","white","white","white","white","black","black","black","white","black","white","white","black","white",null]');
+assert.equal(run('findWinningLine()'),null);assert.equal(run('isForcedDraw()'),true);
+run('finishDraw(); resetBoard(false)');assert.equal(run('currentPlayer'),'white');assert.equal(run('scores.black'),0);
+run('newMatch(); play(0); resetBoard(true)');assert.equal(run('currentPlayer'),'white');assert.equal(run('board.every(x => x === null)'),true);
+run('newMatch()');assert.equal(run('currentPlayer'),'black');assert.equal(run('scores.black + scores.white'),0);
+console.log('OK: mosse, caselle occupate, quattro direzioni, vittoria, pareggio forzato, punti e reset.');

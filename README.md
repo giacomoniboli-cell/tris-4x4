@@ -1,38 +1,17 @@
-# Tris 4x4
+# Tris 4×4 — Studio 3D
 
-Versione 1.1.0
+Versione 2.0.0. Tabellone tridimensionale con prospettiva, spessore, pedine in rilievo e visuale regolabile. HTML, CSS 3D e JavaScript senza dipendenze: funziona anche offline.
 
-Gioco web statico per due giocatori, con tabellone 4x4, pedine nere e bianche, punteggio persistente durante la partita e pubblicazione su GitHub Pages.
+Apri `index.html` nel browser. Usa i cursori Rotazione e Inclinazione oppure Vista dall’alto per cambiare prospettiva. Le caselle sono accessibili anche con Tab e Invio.
 
-## Gioca online
+## Regole originali
+Due giocatori, nero e bianco, su un solo tabellone 4×4. Il nero apre la prima partita. Vince chi allinea quattro pedine in orizzontale, verticale o diagonale. Quando tutte le linee contengono entrambi i colori, il round termina in pareggio forzato.
 
-https://giacomoniboli-cell.github.io/tris-4x4/
+Ogni vittoria vale un punto. Dopo una vittoria apre l’altro giocatore rispetto al vincitore; dopo un pareggio si alterna il giocatore iniziale. Il pulsante Prossimo round permette di osservare il risultato prima di continuare. Reset tabellone mantiene i punti e cambia il giocatore iniziale nei round in corso; Nuova partita azzera i punti e riparte dal nero. I punti restano solo finché la pagina è aperta.
 
-## Regole
+La trasformazione è visiva: non aggiunge livelli o caselle alle regole originali.
 
-- Si gioca in due: nero contro bianco.
-- La prima partita inizia sempre il nero.
-- I giocatori alternano il turno scegliendo una casella libera.
-- Vince chi allinea 4 pedine in orizzontale, verticale o diagonale.
-- Dopo una vittoria, il round successivo viene iniziato dall'altro giocatore.
-- Se nessun giocatore puo' piu' completare una linea da 4, la partita viene chiusa in pareggio forzato.
-- Dopo un pareggio, il round successivo viene iniziato dall'altro giocatore rispetto al round appena concluso.
-- Ogni vittoria vale 1 punto.
+## Verifica
+`node test.cjs`
 
-## Novita' della versione 1.1.0
-
-- Popup a fine partita per assegnare la vittoria e avviare il round successivo.
-- Popup quando la partita finisce in pareggio forzato.
-- Cambio automatico del giocatore iniziale dopo vittoria o pareggio.
-- `index.html` pronto per GitHub Pages.
-
-## Comandi
-
-- **Nuova partita** azzera il punteggio e ricomincia dal nero.
-- **Reset tabellone** pulisce solo la griglia e avvia il round successivo.
-
-## File principali
-
-- `index.html`: pagina pubblicata da GitHub Pages.
-- `tris-4x4.html`: file locale/originale del gioco.
-- `VERSION`: versione corrente pubblicata su GitHub.
+Il workflow GitHub Pages originale è conservato. Le modifiche locali non sono pubblicate finché non vengono caricate sul repository.
